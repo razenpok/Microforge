@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/starsector-intellij-template.iml" filepath="$PROJECT_DIR$/starsector-intellij-template.iml" />
+      <module fileurl="file://$PROJECT_DIR$/microforge.iml" filepath="$PROJECT_DIR$/microforge.iml" />
     </modules>
   </component>
 </project>
