@@ -2,4 +2,4 @@
 
 ## Description
 
-This is a Starsector mod that allows for patching jar files of the game.
+Boot-time Starsector jar compiler.

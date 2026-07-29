@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/microforge.iml" filepath="$PROJECT_DIR$/microforge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/microforge/microforge.iml" filepath="$PROJECT_DIR$/microforge/microforge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/microforge-plugin/microforge-plugin.iml" filepath="$PROJECT_DIR$/microforge-plugin/microforge-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/microforge-cli/microforge-cli.iml" filepath="$PROJECT_DIR$/microforge-cli/microforge-cli.iml" />
+      <module fileurl="file://$PROJECT_DIR$/microforge-compiler/microforge-compiler.iml" filepath="$PROJECT_DIR$/microforge-compiler/microforge-compiler.iml" />
     </modules>
   </component>
 </project>

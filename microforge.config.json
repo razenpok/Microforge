@@ -1,0 +1,6 @@
+{
+  "build": {
+    "enabled": true,
+    "src": "microforge-plugin/src"
+  }
+}
