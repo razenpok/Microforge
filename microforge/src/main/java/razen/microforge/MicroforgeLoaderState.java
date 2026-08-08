@@ -1,114 +1,118 @@
 package razen.microforge;
 
-import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.graphics.SpriteAPI;
-import com.fs.starfarer.api.ui.Alignment;
-import com.fs.starfarer.api.ui.Fonts;
-import com.fs.starfarer.api.ui.LabelAPI;
 import com.fs.state.AppState;
 
-import java.awt.Color;
-import java.io.IOException;
 import java.util.Map;
-import javax.imageio.ImageIO;
 
-import org.lwjgl.opengl.Display;
+import org.lwjgl.Sys;
+import org.apache.log4j.Logger;
+import razen.microforge.core.modbuild.ModBuildTarget;
+import razen.microforge.core.modbuild.ModProcessor;
+import razen.microforge.core.mods.ModManager;
+import razen.microforge.core.mods.MicroforgeVersionCompatibility;
+import razen.microforge.core.patch.GameVersion;
+import razen.microforge.core.patch.PatchCompatibilityException;
 
 public class MicroforgeLoaderState implements AppState {
+    private static final Logger LOG = Logger.getLogger(MicroforgeLoaderState.class);
     public static final String STATE_ID = MicroforgeLoaderState.class.getCanonicalName();
-    public static final String BAR_BG = "graphics/ui/loading_widget.png";
-    public static final String BAR = "graphics/ui/loading_widget_glow.png";
-    private static final String TITLE = "graphics/ui/starsector_title_alpha.png";
-    private static final String STATUS_FONT = Fonts.ORBITRON_20AA;
-    private SpriteAPI barBg;
-    private SpriteAPI title;
-    private SpriteAPI bar;
-    private LabelAPI status;
+    private final LoadingScreen screen = new LoadingScreen();
 
     public String getID() {
         return STATE_ID;
     }
 
-    public void init(Map session) throws Exception {
-        Display.setVSyncEnabled(false);
-        ImageIO.setUseCache(false);
-        this.barBg = loadSprite(BAR_BG);
-        this.title = loadSprite(TITLE);
-        this.bar = loadSprite(BAR);
-        Global.getSettings().loadFont(STATUS_FONT);
-        this.status = Global.getSettings().createLabel("", STATUS_FONT);
-        this.status.setAlignment(Alignment.MID);
-        this.status.setColor(new Color(160, 220, 255, 230));
-        this.renderBg();
-
-        var buildProcessor = ModProcessor.fromRuntime();
-        var targets = buildProcessor.findTargets();
-        if (targets.isEmpty()) {
-            return;
+    public void init(Map session) {
+        try {
+            screen.initialize();
+        } catch (Exception e) {
+            throw shutdown("Microforge could not initialize its loading screen.\n"
+                    + "Check starsector.log for more info.", e);
         }
 
-        this.renderProgress(0.0F);
-        buildProcessor.compileAll(targets, (target, completed, total) ->
-                this.renderProgress((float) completed / total, target == null ? null : compilingMessage(target)));
+        var modManager = verify();
+        try {
+            var buildOutputRoot = Paths.getModPath().resolve("out/build/classes");
+            var buildProcessor = new ModProcessor(buildOutputRoot, Paths.getEcjJar(),
+                    Paths.gameClasspathJars(), modManager.getEnabledMods());
+            var targets = buildProcessor.findTargets();
+            if (targets.isEmpty()) {
+                return;
+            }
+
+            screen.render(0.0F, null);
+            buildProcessor.compileAll(targets, (target, completed, total) ->
+                    screen.render((float) completed / total,
+                            target == null ? null : compilingMessage(target)));
+        } catch (Exception e) {
+            throw shutdown("Microforge could not build the enabled mods.\n"
+                    + "Check starsector.log for more info.", e);
+        }
     }
 
     public String traverse() {
         return "Title Screen State";
     }
 
-    private void renderBg() {
-        var titleYOffset = 48.0F;
-        Renderer.clearFrame();
-        var screenWidth = Renderer.logicalScreenWidth();
-        var screenHeight = Renderer.logicalScreenHeight();
-        Renderer.beginScreenProjection(0.0F, screenWidth, 0.0F, screenHeight);
-        this.title.renderAtCenter(screenWidth / 2.0F, screenHeight / 2.0F + titleYOffset + 5.0F);
-        this.barBg.renderAtCenter(screenWidth / 2.0F, screenHeight / 2.0F);
-        Renderer.endScreenProjection();
-        Display.update();
-    }
-
-    private void renderProgress(float progress) {
-        renderProgress(progress, null);
-    }
-
-    private void renderProgress(float progress, String statusText) {
-        var titleYOffset = 48.0F;
-        Renderer.clearFrame();
-        var screenWidth = Renderer.logicalScreenWidth();
-        var screenHeight = Renderer.logicalScreenHeight();
-        Renderer.beginScreenProjection(0.0F, screenWidth, 0.0F, screenHeight);
-        this.title.renderAtCenter(screenWidth / 2.0F, screenHeight / 2.0F + titleYOffset + 5.0F);
-        this.barBg.renderAtCenter(screenWidth / 2.0F, screenHeight / 2.0F);
-        this.bar.renderRegionAtCenter(screenWidth / 2.0F, screenHeight / 2.0F, 0.0F, 0.0F, progress, 1.0F);
-        this.renderStatus(statusText, screenWidth, screenHeight);
-        Renderer.endScreenProjection();
-        Display.update();
-    }
-
-    private void renderStatus(String text, float screenWidth, float screenHeight) {
-        if (this.status == null || text == null || text.isBlank()) {
-            return;
-        }
-
-        var maxWidth = Math.max(200.0F, screenWidth - 96.0F);
-        this.status.setText(text);
-        this.status.autoSizeToWidth(maxWidth);
-
-        var width = this.status.getPosition().getWidth();
-        var height = this.status.getPosition().getHeight();
-        this.status.getPosition().setLocation((screenWidth - width) / 2.0F,
-                screenHeight / 2.0F - 50.0F - height / 2.0F);
-        this.status.render(1.0F);
-    }
-
     private static String compilingMessage(ModBuildTarget target) {
         return "Compiling " + target.displayName() + "...";
     }
 
-    private static SpriteAPI loadSprite(String path) throws IOException {
-        Global.getSettings().loadTexture(path);
-        return Global.getSettings().getSprite(path);
+    private static ModManager verify() {
+        final ModManager modManager;
+        try {
+            modManager = ModManager.getInstance();
+            modManager.updateList();
+        } catch (Exception e) {
+            throw shutdown("Microforge could not read the enabled mods.\n"
+                    + "Check starsector.log for more info.", e);
+        }
+
+        if (!modManager.isEnabled(ModManager.MICROFORGE_ID)) {
+            throw shutdown(
+                    "Microforge is disabled in the mod list.\nEnable Microforge and restart the game.", null);
+        }
+
+        var microforge = modManager.getAvailableMod(ModManager.MICROFORGE_ID);
+        if (microforge == null) {
+            throw shutdown("Microforge was not found in the mod manager.\n"
+                    + "Reinstall Microforge and restart the game.", null);
+        }
+        var versionCompatibility = MicroforgeVersionCompatibility.inspect(
+                microforge, modManager.getEnabledMods());
+        if (!versionCompatibility.isCompatible()) {
+            try {
+                modManager.disableMods(versionCompatibility.incompatibleModIds());
+            } catch (Exception e) {
+                throw shutdown("Microforge could not disable mods that declare an incompatible Microforge version.\n"
+                        + "Check starsector.log for more info.", e);
+            }
+            throw shutdown(MicroforgeVersionMessages.cannotStart(versionCompatibility), null);
+        }
+
+        final boolean current;
+        try {
+            current = GameApiPatcher.isPreparedPatchCurrent(modManager, GameVersion.load());
+        } catch (PatchCompatibilityException e) {
+            throw shutdown(e.getMessage(), null);
+        } catch (Exception e) {
+            throw shutdown("Microforge could not verify the Starsector API patches.\n"
+                    + "Check starsector.log for more info.", e);
+        }
+        if (!current) {
+            throw shutdown("The mod selection changed after Microforge started.\n"
+                    + "Restart the game to apply it.", null);
+        }
+        return modManager;
+    }
+
+    private static IllegalStateException shutdown(String message, Exception cause) {
+        if (cause != null) {
+            LOG.error("Microforge encountered an unrecoverable error during game startup.", cause);
+        }
+        Sys.alert("Microforge", message);
+        System.exit(1);
+        return new IllegalStateException(message, cause);
     }
 
     public void goToState(String stateId) {

@@ -9,4 +9,8 @@ final class BuildException extends Exception {
     BuildException(String message) {
         super(message);
     }
+
+    BuildException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

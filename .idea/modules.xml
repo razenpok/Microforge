@@ -5,7 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/microforge/microforge.iml" filepath="$PROJECT_DIR$/microforge/microforge.iml" />
       <module fileurl="file://$PROJECT_DIR$/microforge-plugin/microforge-plugin.iml" filepath="$PROJECT_DIR$/microforge-plugin/microforge-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/microforge-cli/microforge-cli.iml" filepath="$PROJECT_DIR$/microforge-cli/microforge-cli.iml" />
-      <module fileurl="file://$PROJECT_DIR$/microforge-compiler/microforge-compiler.iml" filepath="$PROJECT_DIR$/microforge-compiler/microforge-compiler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/microforge-core/microforge-core.iml" filepath="$PROJECT_DIR$/microforge-core/microforge-core.iml" />
     </modules>
   </component>
 </project>

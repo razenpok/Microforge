@@ -182,11 +182,12 @@ final class Renderer {
             throw new IllegalArgumentException("pad string length must be 1");
         }
 
-        while (value.length() < length) {
-            value = pad + value;
+        var valueBuilder = new StringBuilder(value);
+        while (valueBuilder.length() < length) {
+            valueBuilder.insert(0, pad);
         }
 
-        return value;
+        return valueBuilder.toString();
     }
 
     static Color scale(Color color, float multiplier) {
