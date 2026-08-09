@@ -21,7 +21,16 @@ Change it to this:
 java.exe -javaagent:..\mods\Microforge\jars\microforge.jar -noverify -XX:+UnlockDiagnosticVMOptions -XX:+UnlockExperimentalVMOptions ...
 ```
 
-The `vmparams` file is located in the same folder as `starsector.exe`.
+The `vmparams` file is located in the same folder as `starsector.exe`. If you
+play
+with [Fast Rendering](https://fractalsoftworks.com/forum/index.php?topic=33870.0),
+then you will also need to add Microforge java agent to
+`starsector-core/fs.vmparams` file:
+
+```
+-javaagent:fr.agent.jar
+-javaagent:..\mods\Microforge\jars\microforge.jar
+```
 
 ## macOS
 

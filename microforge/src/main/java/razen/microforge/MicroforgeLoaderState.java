@@ -47,6 +47,8 @@ public class MicroforgeLoaderState implements AppState {
         } catch (Exception e) {
             throw shutdown("Microforge could not build the enabled mods.\n"
                     + "Check starsector.log for more info.", e);
+        } finally {
+            screen.close();
         }
     }
 
