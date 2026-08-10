@@ -1,5 +1,6 @@
 package razen.microforge.core.patch;
 
+import org.apache.log4j.Logger;
 import razen.microforge.core.io.FileOperations;
 
 import java.io.IOException;
@@ -12,6 +13,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class PatchMerger {
+    private static final Logger LOG = Logger.getLogger(PatchMerger.class);
+
     private PatchMerger() {
     }
 
@@ -78,6 +81,11 @@ public final class PatchMerger {
                                       PatchEdits.OwnedEdit candidate) throws IOException {
         for (var existing : edits) {
             if (existing.edit().equals(candidate.edit())) {
+                if (!existing.owner().equals(candidate.owner())) {
+                    LOG.info("Merging identical Starsector source changes from mods " + existing.owner() + " and "
+                            + candidate.owner() + " in " + path + " near line " + (candidate.edit().start() + 1)
+                            + ".");
+                }
                 return;
             }
             if (conflicts(existing.edit(), candidate.edit())) {

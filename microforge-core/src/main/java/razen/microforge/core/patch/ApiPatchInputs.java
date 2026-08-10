@@ -29,11 +29,16 @@ public final class ApiPatchInputs {
             try {
                 if (Files.isDirectory(liveSources)) {
                     validateLiveSources(mod.name(), liveSources, gameVersion);
+                    LOG.info("Discovered live Starsector API patch for " + mod.name() + " at " + liveSources + ".");
                     candidates.add(Candidate.live(mod.name(), liveSources));
                     continue;
                 }
                 VersionedPatchLoader.select(patchRoot, gameVersion, mod.name())
-                        .ifPresent(selection -> candidates.add(Candidate.versioned(mod.name(), selection)));
+                        .ifPresent(selection -> {
+                            LOG.info("Discovered Starsector API patch " + selection.version() + " for " + mod.name()
+                                    + " at " + selection.path() + ".");
+                            candidates.add(Candidate.versioned(mod.name(), selection));
+                        });
             } catch (PatchCompatibilityException e) {
                 throw e;
             } catch (IOException e) {
