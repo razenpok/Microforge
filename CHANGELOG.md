@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+### Fixed
+
+- Fixed version in mod_info.json
+
 ## 1.0.1
 
 ### Fixed

@@ -3,7 +3,7 @@
   "name": "Microforge",
   "author": "Razenpok",
   "utility": true,
-  "version": { "major": "1", "minor": "0", "patch": "0" },
+  "version": "1.0.2",
   "description": "Boot-time jar compiler.",
   "gameVersion": "0.98a-RC5",
   "jars": [ "jars/microforge-plugin.jar" ],
